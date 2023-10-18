@@ -1,5 +1,5 @@
 const express = require("express");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const cors = require("cors");
 require("dotenv").config();
 const app = express();
@@ -14,7 +14,6 @@ app.get("/", (req, res) => {
 });
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.flnzb5m.mongodb.net/?retryWrites=true&w=majority`;
-console.log(uri);
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -36,14 +35,43 @@ async function run() {
     // POST Products data to MongoDB from Client Site
     app.post("/api/products", async (req, res) => {
       const products = req.body;
-      // console.log(user);
       const result = await productCollection.insertOne(products);
       console.log(result);
       res.send(result);
     });
-    // Get Products data to Server site from MongoDB
+
+    // Get all Products data to Server site from MongoDB
     app.get("/api/products", async (req, res) => {
       const result = await productCollection.find().toArray();
+      res.send(result);
+    });
+
+    // Get one Products data to Server site from MongoDB
+    app.get("/api/products/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await productCollection.findOne(query);
+      res.send(result);
+    });
+
+    // Patch one product data
+    app.patch("/api/products/:id", async (req, res) => {
+      const id = req.params.id;
+      const updateData = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const updateDetails = {
+        $set: {
+          name: updateData.name,
+          brand: updateData.brand,
+          category: updateData.category,
+          released: updateData.released,
+          photoURL: updateData.photoURL,
+          price: updateData.price,
+          rating: updateData.rating,
+          description: updateData.description,
+        },
+      };
+      const result = await productCollection.updateOne(filter, updateDetails);
       res.send(result);
     });
 
