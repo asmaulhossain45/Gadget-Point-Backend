@@ -9,10 +9,6 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-app.get("/", (req, res) => {
-  res.send("Gadget Point Server");
-});
-
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.flnzb5m.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -29,14 +25,20 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
     // Create collection
+    const brandCollection = client.db("GadgetDB").collection("Brand");
     const productCollection = client.db("GadgetDB").collection("products");
     const cartCollection = client.db("GadgetDB").collection("cart");
+
+    // Get Brand Name in server site
+    app.get("/api/brand", async (req, res) => {
+      const result = await brandCollection.find().toArray();
+      res.send(result);
+    });
 
     // POST Products data to MongoDB from Client Site
     app.post("/api/products", async (req, res) => {
       const products = req.body;
       const result = await productCollection.insertOne(products);
-      console.log(result);
       res.send(result);
     });
 
@@ -45,6 +47,19 @@ async function run() {
       const result = await productCollection.find().toArray();
       res.send(result);
     });
+
+    // ========= practice =========
+    // Get all Products data by brand from MongoDB
+    app.get("/api/brand/:brand", async (req, res) => {
+      const brand = req.params.brand;
+      console.log(brand);
+      const query = { brand: brand };
+      console.log(query);
+      const result = await productCollection.find(query).toArray();
+      console.log(result);
+      res.send(result);
+    });
+    // ========= practice =========
 
     // Get one Products data to Server site from MongoDB
     app.get("/api/products/:id", async (req, res) => {
@@ -72,6 +87,36 @@ async function run() {
         },
       };
       const result = await productCollection.updateOne(filter, updateDetails);
+      res.send(result);
+    });
+
+    // POST Cart data to MongoDB from Client Site
+    app.post("/api/cart", async (req, res) => {
+      const cart = req.body;
+      const result = await cartCollection.insertOne(cart);
+      res.send(result);
+    });
+
+    // Get all cart data to Server site from MongoDB
+    app.get("/api/cart", async (req, res) => {
+      const result = await cartCollection.find().toArray();
+      res.send(result);
+    });
+
+    // Get one cart Products to Server site from MongoDB
+    app.get("/api/cart/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      // console.log(query);
+      const result = await cartCollection.findOne(query);
+      res.send(result);
+    });
+
+    // Delete Cart Product Function
+    app.delete("/api/cart/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: id };
+      const result = await cartCollection.deleteOne(query);
       res.send(result);
     });
 
