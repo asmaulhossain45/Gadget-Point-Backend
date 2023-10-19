@@ -52,11 +52,8 @@ async function run() {
     // Get all Products data by brand from MongoDB
     app.get("/api/brand/:brand", async (req, res) => {
       const brand = req.params.brand;
-      console.log(brand);
       const query = { brand: brand };
-      console.log(query);
       const result = await productCollection.find(query).toArray();
-      console.log(result);
       res.send(result);
     });
     // ========= practice =========
@@ -107,7 +104,6 @@ async function run() {
     app.get("/api/cart/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
-      // console.log(query);
       const result = await cartCollection.findOne(query);
       res.send(result);
     });
