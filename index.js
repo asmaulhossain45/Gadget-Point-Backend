@@ -28,6 +28,7 @@ async function run() {
     const brandCollection = client.db("GadgetDB").collection("Brand");
     const productCollection = client.db("GadgetDB").collection("products");
     const cartCollection = client.db("GadgetDB").collection("cart");
+    const reviewCollection = client.db("GadgetDB").collection("Review");
 
     // Get Brand Name in server site
     app.get("/api/brand", async (req, res) => {
@@ -48,7 +49,6 @@ async function run() {
       res.send(result);
     });
 
-    // ========= practice =========
     // Get all Products data by brand from MongoDB
     app.get("/api/brand/:brand", async (req, res) => {
       const brand = req.params.brand;
@@ -56,7 +56,6 @@ async function run() {
       const result = await productCollection.find(query).toArray();
       res.send(result);
     });
-    // ========= practice =========
 
     // Get one Products data to Server site from MongoDB
     app.get("/api/products/:id", async (req, res) => {
@@ -74,12 +73,16 @@ async function run() {
       const updateDetails = {
         $set: {
           name: updateData.name,
+          productId: updateData.productId,
           brand: updateData.brand,
           category: updateData.category,
-          released: updateData.released,
           photoURL: updateData.photoURL,
+          display: updateData.display,
+          features: updateData.features,
+          released: updateData.released,
           price: updateData.price,
           rating: updateData.rating,
+          warranty: updateData.warranty,
           description: updateData.description,
         },
       };
@@ -87,11 +90,18 @@ async function run() {
       res.send(result);
     });
 
+    // ====== Cart Section ======
+
     // POST Cart data to MongoDB from Client Site
     app.post("/api/cart", async (req, res) => {
       const cart = req.body;
-      const result = await cartCollection.insertOne(cart);
-      res.send(result);
+      const existCart = await cartCollection.findOne({ _id: cart._id });
+      if (existCart) {
+        res.json({ message: "User with this email already exists" });
+      } else {
+        const result = await cartCollection.insertOne(cart);
+        res.send(result);
+      }
     });
 
     // Get all cart data to Server site from MongoDB
@@ -113,6 +123,21 @@ async function run() {
       const id = req.params.id;
       const query = { _id: id };
       const result = await cartCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    // ====== User Review ======
+
+    // Get all cart data to Server site from MongoDB
+    app.get("/api/reviews", async (req, res) => {
+      const result = await reviewCollection.find().toArray();
+      res.send(result);
+    });
+
+    // POST Products data to MongoDB from Client Site
+    app.post("/api/reviews", async (req, res) => {
+      const userReview = req.body;
+      const result = await reviewCollection.insertOne(userReview);
       res.send(result);
     });
 
