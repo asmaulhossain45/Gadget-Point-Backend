@@ -92,37 +92,38 @@ async function run() {
 
     // ====== Cart Section ======
 
-    // POST Cart data to MongoDB from Client Site
-    app.post("/api/cart", async (req, res) => {
-      const cart = req.body;
-      const existCart = await cartCollection.findOne({ _id: cart._id });
-      if (existCart) {
-        res.json({ message: "User with this email already exists" });
-      } else {
-        const result = await cartCollection.insertOne(cart);
-        res.send(result);
-      }
-    });
-
-    // Get all cart data to Server site from MongoDB
+    // Add all cart to server from database for display
     app.get("/api/cart", async (req, res) => {
       const result = await cartCollection.find().toArray();
       res.send(result);
     });
 
-    // Get one cart Products to Server site from MongoDB
-    app.get("/api/cart/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await cartCollection.findOne(query);
+    // POST Cart data to MongoDB from Client Site
+    app.post("/api/cart", async (req, res) => {
+      const cart = req.body;
+      const result = await cartCollection.insertOne(cart);
       res.send(result);
     });
 
-    // Delete Cart Product Function
-    app.delete("/api/cart/:id", async (req, res) => {
+    // Get User cart Products by email from MongoDB
+    app.get("/api/cart/:userUID", async (req, res) => {
+      const userUID = req.params.userUID;
+      const query = { userUID: userUID };
+      const result = await cartCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    // Get User cart Products by id from MongoDB
+    app.get("/api/cart/remove", async (req, res) => {
+      const result = await cartCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.delete("/api/cart/remove/:id", async (req, res) => {
       const id = req.params.id;
-      const query = { _id: id };
+      const query = { _id: new ObjectId(id) };
       const result = await cartCollection.deleteOne(query);
+      console.log(result);
       res.send(result);
     });
 
